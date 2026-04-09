@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dice Drop Match — Match dice, clear the board, beat the clock</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Russo+One&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #071210;
+            background-image:
+                radial-gradient(ellipse 90% 70% at 50% -10%, rgba(244, 196, 48, 0.12), transparent 50%),
+                radial-gradient(ellipse 60% 50% at 0% 50%, rgba(230, 57, 70, 0.06), transparent 45%),
+                radial-gradient(ellipse 55% 45% at 100% 60%, rgba(46, 196, 182, 0.08), transparent 45%),
+                linear-gradient(185deg, #050a09 0%, #0c1815 35%, #071210 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 24px;
+            position: relative;
+            overflow-x: hidden;
+            color: #dce8e4;
+        }
+
+        .felt-texture {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.04;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+        }
+
+        .timer-ring {
+            position: fixed;
+            top: 8%;
+            right: -80px;
+            width: 220px;
+            height: 220px;
+            border: 3px solid rgba(244, 196, 48, 0.15);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            background: linear-gradient(165deg, rgba(18, 42, 36, 0.92) 0%, rgba(8, 22, 18, 0.96) 100%);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 24px;
+            border: 1px solid rgba(46, 196, 182, 0.25);
+            box-shadow:
+                0 0 0 1px rgba(255, 255, 255, 0.04) inset,
+                0 24px 56px rgba(0, 0, 0, 0.5),
+                0 0 60px rgba(230, 57, 70, 0.06);
+            max-width: 600px;
+            width: 100%;
+            padding: 42px 36px;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .dice-mark {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            line-height: 1;
+            background: linear-gradient(145deg, #f8faf9 0%, #d8e0dd 100%);
+            border: 3px solid rgba(230, 57, 70, 0.45);
+            border-radius: 18px;
+            box-shadow:
+                0 10px 0 rgba(0, 0, 0, 0.2),
+                0 16px 40px rgba(0, 0, 0, 0.35),
+                inset 0 2px 0 rgba(255, 255, 255, 0.7);
+        }
+
+        h1 {
+            font-family: 'Russo One', sans-serif;
+            font-size: 1.95rem;
+            font-weight: 400;
+            letter-spacing: 0.02em;
+            margin-bottom: 8px;
+            line-height: 1.15;
+            color: #f2f7f5;
+        }
+
+        h1 .glow {
+            background: linear-gradient(100deg, #f4c430 0%, #fff8e0 35%, #2ec4b6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            color: #7aa89a;
+            font-size: 1.02rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .badges {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 24px;
+        }
+
+        .badge {
+            background: rgba(230, 57, 70, 0.15);
+            border: 1px solid rgba(230, 57, 70, 0.35);
+            color: #f4a5ad;
+            padding: 7px 13px;
+            border-radius: 8px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .badge.alt {
+            background: rgba(46, 196, 182, 0.12);
+            border-color: rgba(46, 196, 182, 0.35);
+            color: #7dd9ce;
+        }
+
+        .description {
+            text-align: left;
+            color: #9bb5ad;
+            line-height: 1.8;
+            font-size: 0.97rem;
+            margin-bottom: 24px;
+        }
+
+        .description strong {
+            color: #e8f0ed;
+            font-weight: 700;
+        }
+
+        .how-box {
+            text-align: left;
+            background: rgba(0, 0, 0, 0.28);
+            border-radius: 14px;
+            border-left: 4px solid #f4c430;
+            padding: 20px 22px;
+            margin-bottom: 24px;
+        }
+
+        .how-box h3 {
+            font-family: 'Russo One', sans-serif;
+            font-size: 0.82rem;
+            font-weight: 400;
+            color: #f4c430;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+        }
+
+        .how-box ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .how-box li {
+            color: #9bb5ad;
+            padding: 6px 0 6px 28px;
+            position: relative;
+            font-size: 0.93rem;
+            line-height: 1.55;
+        }
+
+        .how-box li::before {
+            content: "⬡";
+            position: absolute;
+            left: 0;
+            color: #2ec4b6;
+            font-size: 0.85rem;
+        }
+
+        .features {
+            text-align: left;
+            margin-bottom: 28px;
+        }
+
+        .features h3 {
+            font-family: 'Russo One', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 400;
+            color: #2ec4b6;
+            letter-spacing: 0.06em;
+            margin-bottom: 12px;
+        }
+
+        .features ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .features li {
+            color: #9bb5ad;
+            padding: 8px 0 8px 28px;
+            position: relative;
+            font-size: 0.94rem;
+            line-height: 1.58;
+        }
+
+        .features li::before {
+            content: "■";
+            position: absolute;
+            left: 0;
+            top: 10px;
+            color: #e63946;
+            font-size: 0.45rem;
+            line-height: 1;
+        }
+
+        .app-store-button {
+            display: inline-block;
+            background: linear-gradient(145deg, #e63946 0%, #c1121f 100%);
+            color: #fff;
+            padding: 15px 36px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-size: 0.98rem;
+            font-weight: 700;
+            font-family: 'DM Sans', sans-serif;
+            letter-spacing: 0.04em;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            border: none;
+            box-shadow: 0 8px 24px rgba(230, 57, 70, 0.4);
+        }
+
+        .app-store-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 32px rgba(230, 57, 70, 0.5);
+            color: #fff;
+        }
+
+        .footer {
+            margin-top: 28px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(46, 196, 182, 0.18);
+            font-size: 0.84rem;
+            color: #5a7a70;
+            font-weight: 600;
+        }
+
+        .footer a {
+            color: #2ec4b6;
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+            color: #5ee0d4;
+        }
+
+        @media (max-width: 600px) {
+            h1 { font-size: 1.6rem; }
+            .container { padding: 30px 20px; }
+            .dice-mark { width: 88px; height: 88px; font-size: 42px; }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="felt-texture" aria-hidden="true"></div>
+    <div class="timer-ring" aria-hidden="true"></div>
+
+    <div class="container">
+        <div class="dice-mark" role="img" aria-label="Dice">🎲</div>
+        <h1><span class="glow">Dice Drop Match</span></h1>
+        <p class="subtitle">Match dice &amp; beat the clock</p>
+
+        <div class="badges">
+            <span class="badge">Free</span>
+            <span class="badge alt">Puzzle</span>
+            <span class="badge">iPhone</span>
+            <span class="badge alt">4+</span>
+        </div>
+
+        <div class="description">
+            <p><strong>Dice Drop Match</strong> is a fast-paced puzzle arcade game: drag and match dice blocks to make them fall, clear space on the board, and stay ahead of the timer. Match dice with the <strong>same numbers</strong> to remove tiles, keep the stack under control, and chase a higher score. As you play, the pace tightens—quick thinking, sharp reflexes, and smart placement keep the board from filling up.</p>
+            <p style="margin-top:14px">Every second counts. Grab <strong>bonus time</strong> when it appears to extend your run and push your best score. Simple controls, smooth drops, and bite-sized sessions make it easy to play one more round.</p>
+        </div>
+
+        <div class="how-box">
+            <h3>How it plays</h3>
+            <ul>
+                <li>Match identical dice values to clear groups and open the board.</li>
+                <li>Let matched blocks fall away before the stack reaches the limit.</li>
+                <li>Race the clock; bonus pickups can add precious seconds.</li>
+                <li>Climb toward your personal high score with each session.</li>
+            </ul>
+        </div>
+
+        <div class="features">
+            <h3>Why it clicks</h3>
+            <ul>
+                <li><strong>Time pressure</strong> that rewards speed without harsh complexity.</li>
+                <li><strong>Match-and-clear</strong> mechanics that are easy to learn, satisfying to master.</li>
+                <li><strong>Arcade flow</strong> built for short breaks or long streaks.</li>
+                <li><strong>Designed for iPhone</strong>—pick up and play anywhere.</li>
+            </ul>
+        </div>
+
+        <a href="https://apps.apple.com/us/app/dice-drop-match/id6761719621?uo=4" class="app-store-button" target="_blank" rel="noopener noreferrer">
+            Download on the App Store
+        </a>
+
+        <div class="footer">
+            <a href="privacy.html">Privacy Policy</a> &nbsp;·&nbsp; Dice Drop Match
+        </div>
+    </div>
+</body>
+
+</html>

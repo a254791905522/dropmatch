@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy — Dice Drop Match</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Russo+One&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,600;0,9..40,700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #071210;
+            background-image:
+                radial-gradient(ellipse 80% 60% at 100% 0%, rgba(230, 57, 70, 0.08), transparent 45%),
+                linear-gradient(180deg, #050a09 0%, #0c1815 45%, #071210 100%);
+            color: #9bb5ad;
+            line-height: 1.75;
+            min-height: 100vh;
+        }
+
+        .grid-bg {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.06;
+            background-image:
+                linear-gradient(rgba(46, 196, 182, 0.4) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(46, 196, 182, 0.4) 1px, transparent 1px);
+            background-size: 28px 28px;
+        }
+
+        .shell {
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 36px 22px 64px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .masthead {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 32px;
+            padding-bottom: 24px;
+            border-bottom: 2px solid rgba(244, 196, 48, 0.35);
+        }
+
+        .masthead h1 {
+            font-family: 'Russo One', sans-serif;
+            font-size: clamp(1.5rem, 4vw, 2rem);
+            font-weight: 400;
+            color: #f2f7f5;
+            letter-spacing: 0.02em;
+        }
+
+        .masthead h1 span {
+            color: #f4c430;
+        }
+
+        .masthead .meta {
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: #5a7a70;
+            text-transform: uppercase;
+            letter-spacing: 0.14em;
+        }
+
+        .summary-bar {
+            background: linear-gradient(90deg, rgba(46, 196, 182, 0.18) 0%, rgba(230, 57, 70, 0.12) 100%);
+            border: 1px solid rgba(46, 196, 182, 0.3);
+            border-radius: 12px;
+            padding: 18px 22px;
+            margin-bottom: 36px;
+            font-size: 0.98rem;
+            color: #dce8e4;
+            font-weight: 600;
+        }
+
+        .sections {
+            display: flex;
+            flex-direction: column;
+            gap: 28px;
+        }
+
+        .block {
+            display: grid;
+            grid-template-columns: 52px 1fr;
+            gap: 18px;
+            align-items: start;
+        }
+
+        @media (max-width: 520px) {
+            .block {
+                grid-template-columns: 1fr;
+            }
+            .block .num {
+                margin-bottom: -8px;
+            }
+        }
+
+        .block .num {
+            font-family: 'Russo One', sans-serif;
+            font-size: 1.35rem;
+            color: rgba(230, 57, 70, 0.85);
+            line-height: 1.2;
+        }
+
+        .block .body h2 {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #2ec4b6;
+            margin-bottom: 10px;
+        }
+
+        .block .body p {
+            font-size: 0.96rem;
+            margin-bottom: 10px;
+        }
+
+        .block .body p:last-child {
+            margin-bottom: 0;
+        }
+
+        .block .body strong {
+            color: #e8f0ed;
+            font-weight: 700;
+        }
+
+        .block .body ul {
+            margin: 10px 0 0;
+            padding-left: 1.1em;
+        }
+
+        .block .body li {
+            margin-bottom: 8px;
+            font-size: 0.96rem;
+        }
+
+        .callout {
+            margin-top: 40px;
+            padding: 22px;
+            border-radius: 14px;
+            background: rgba(0, 0, 0, 0.35);
+            border: 1px dashed rgba(244, 196, 48, 0.35);
+            font-size: 0.92rem;
+            color: #7aa89a;
+        }
+
+        .callout strong {
+            color: #f4c430;
+        }
+
+        .back {
+            margin-top: 40px;
+            text-align: center;
+        }
+
+        .back a {
+            display: inline-block;
+            font-family: 'Russo One', sans-serif;
+            font-size: 0.85rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #e63946;
+            text-decoration: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            border: 2px solid rgba(230, 57, 70, 0.4);
+            background: rgba(230, 57, 70, 0.08);
+            transition: background 0.2s ease, color 0.2s ease;
+        }
+
+        .back a:hover {
+            background: rgba(230, 57, 70, 0.18);
+            color: #ff6b7a;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="grid-bg" aria-hidden="true"></div>
+
+    <div class="shell">
+        <header class="masthead">
+            <h1>Privacy <span>Statement</span></h1>
+            <p class="meta">Dice Drop Match · April 2026</p>
+        </header>
+
+        <p class="summary-bar">This document explains how <strong>Dice Drop Match</strong> treats information when you play the iOS version distributed through Apple’s App Store. It is written in plain language and does not replace Apple’s own policies for the store, your Apple ID, or your device.</p>
+
+        <div class="sections">
+            <div class="block">
+                <div class="num">01</div>
+                <div class="body">
+                    <h2>Scope</h2>
+                    <p>These terms apply only to the <strong>Dice Drop Match</strong> application as offered on the App Store. If Apple updates system behavior or store requirements, some details below may still describe the general intent of the product.</p>
+                </div>
+            </div>
+
+            <div class="block">
+                <div class="num">02</div>
+                <div class="body">
+                    <h2>Data collection</h2>
+                    <p>The app is listed on the App Store with <strong>no data collection</strong> reported for the categories Apple asks developers to disclose. In other words, the product is not designed to gather personal analytics, advertising identifiers, or similar datasets through the game itself for those labeled practices.</p>
+                    <p>Apple may still process information when you download, update, or use the store—under <strong>Apple’s</strong> privacy policy and terms—not under this in-game statement.</p>
+                </div>
+            </div>
+
+            <div class="block">
+                <div class="num">03</div>
+                <div class="body">
+                    <h2>On-device play</h2>
+                    <p>Gameplay may rely on <strong>local storage</strong> on your iPhone (for example scores or settings). That data typically remains on the device unless a future version explicitly introduces cloud sync or similar features, which would be described in release notes and store metadata.</p>
+                </div>
+            </div>
+
+            <div class="block">
+                <div class="num">04</div>
+                <div class="body">
+                    <h2>Children and ratings</h2>
+                    <p>The app is rated suitable for a broad audience (<strong>4+</strong>). Parents and guardians can use Apple’s built-in tools (such as Screen Time and Ask to Buy) to manage installs and purchases.</p>
+                </div>
+            </div>
+
+            <div class="block">
+                <div class="num">05</div>
+                <div class="body">
+                    <h2>Third parties</h2>
+                    <p>Besides Apple’s platform services, this privacy text does not reference external sites or contact channels. Any change to how data is handled would be reflected in the App Store privacy labels and app updates.</p>
+                </div>
+            </div>
+
+            <div class="block">
+                <div class="num">06</div>
+                <div class="body">
+                    <h2>Updates to this text</h2>
+                    <p>This page may be revised for clarity or to align with the current store listing. The <strong>date</strong> shown in the header indicates the last revision pass for this document.</p>
+                </div>
+            </div>
+        </div>
+
+        <p class="callout"><strong>Note:</strong> For the authoritative “App Privacy” summary that Apple displays, refer to the Dice Drop Match product page on the App Store. That label is supplied by the developer to Apple and may be updated independently of this page.</p>
+
+        <nav class="back">
+            <a href="index.html">← Game overview</a>
+        </nav>
+    </div>
+</body>
+
+</html>
